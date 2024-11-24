@@ -1,0 +1,63 @@
+import requests
+from bs4 import BeautifulSoup
+import sqlite3
+import time
+
+
+while (True):
+    print("1. Введите веб-сайт: ")
+    print("2. Введите ключевое слово: ")
+    print("3. Удалить веб-сайт: ")
+    print("4. Выйти.")
+    n = int(input())
+    if n == 1:
+        time.sleep(0.5)
+        print("Пожалуйста, введите ссылку: ")
+        url = input()
+        connection = sqlite3.connect("pp.sl3")
+        cursor = connection.cursor()
+        cursor.execute("drop table if exists titles")
+        cursor.execute("Create table if not exists titles(name text)")
+        cursor.execute("Insert into titles(name) values(?)", (url,))
+        connection.commit()
+        connection.close()
+        print("Удачно.")
+
+    elif n == 2:
+        time.sleep(0.5)
+        print("Пожалуйста, введите ссылку: ")
+        url = input()
+        print("Пожалуйста, введите ключевое слово: ")
+        key = input()
+        connection = sqlite3.connect('pp.sl3')
+        cursor = connection.cursor()
+        cursor.execute('select * from titles where name = ?', (url,))
+        row = cursor.fetchall()
+        if row:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            text = soup.get_text()
+            keyC = text.lower().count(key.lower())
+            print(f"Найдено всего {str(keyC)} {key}")
+        else:
+            print("Ссылка не добавлена.")
+
+        cursor.execute("SELECT * FROM titles")
+
+    elif n == 3:
+        time.sleep(0.5)
+        print("Введите ссылку: ")
+        url = input()
+        connection = sqlite3.connect('pp.sl3')
+        cursor = connection.cursor()
+        cursor.execute('select * from titles where name = ?', (url,))
+        row = cursor.fetchall()
+        if row:
+            cursor.execute('delete from titles where name = ?', (url,))
+            cursor.execute("drop table if exists titles")
+            print("Ссылка удалена.")
+        else:
+            print("Ссылка не добавлена.")
+
+    else:
+        break
